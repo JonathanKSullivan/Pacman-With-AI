@@ -85,7 +85,7 @@ def depthFirstSearch(problem):
   """
   "*** YOUR CODE HERE ***"
 
-  #print "Start:", problem.getStartState()
+  print "Start:", problem.getStartState()
   #print "Is the start a goal?", problem.isGoalState(problem.getStartState())
   #print "Start's successors:", problem.getSuccessors(problem.getStartState())
   path = []
@@ -120,23 +120,21 @@ def breadthFirstSearch(problem):
   "*** YOUR CODE HERE ***"
   depth = 0
   path = []
-  visted = []
-  visted2 = []
   isGoalReached = False
   state_queue = util.PriorityQueue()
   state_queue.push(((problem.getStartState(),'','',),[]), depth)
   while not isGoalReached:
     current_state = state_queue.pop()
+    #print current_state
     if not problem.isGoalState(current_state[0][0]):
       children = problem.getSuccessors(current_state[0][0])
-      print children
+      print current_state  
       depth += 1
       for state in children:
+        print state
         new_loc = state[0]
-        
-        if new_loc not in visted:
-          visted.append(state[0])
-          state_queue.push((state, current_state[1] + [state[1]] ), depth)
+        state_queue.push((state, current_state[1] + [state[1]] ), depth)
+      #print state_queue.heap
     else:
       isGoalReached = True
       return current_state[1]

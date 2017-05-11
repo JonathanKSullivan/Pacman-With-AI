@@ -271,7 +271,7 @@ class CornersProblem(search.SearchProblem):
     self.startingPosition = startingGameState.getPacmanPosition()
     top, right = self.walls.height-2, self.walls.width-2 
     self.corners = ((1,1), (1,top), (right, 1), (right, top))
-    self.visited_corners = {}
+    self.visited_corners = set()
     for corner in self.corners:
       if not startingGameState.hasFood(*corner):
         print 'Warning: no food in corner ' + str(corner)
@@ -289,11 +289,12 @@ class CornersProblem(search.SearchProblem):
     "Returns whether this search state is a goal state of the problem"
     "*** YOUR CODE HERE ***"
     if state in self.corners:
-      if state in self.visited_corners.keys():
-        self.visited_corners[state].add(state)
+      if state in self.visited_corners:
+        self.visited_corners = self.visited_corners | {state}
       else:
-        self.visited_corners[state] = {state}
-    isGoal = True if len(self.visited_corners.get(state,'')) == 4 else False
+        self.visited_corners = {state}
+      print self.visited_corners
+    isGoal = True if len(self.visited_corners) == 4 else False
     
     return isGoal or False
        
@@ -316,7 +317,7 @@ class CornersProblem(search.SearchProblem):
       nextx, nexty = int(x + dx), int(y + dy)
       if not self.walls[nextx][nexty]:
         nextState = (nextx, nexty)
-        successors.append( ( nextState, action) )
+        successors.append( ( nextState, action, state[2]) )
       
       "*** YOUR CODE HERE ***"
     
