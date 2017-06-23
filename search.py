@@ -11,7 +11,7 @@ In search.py, you will implement generic search algorithms which are called
 by Pacman agents (in searchAgents.py).
 """
 
-import util
+import util, math
 
 class SearchProblem:
   """
@@ -83,114 +83,87 @@ def depthFirstSearch(problem):
   print "Is the start a goal?", problem.isGoalState(problem.getStartState())
   print "Start's successors:", problem.getSuccessors(problem.getStartState())
   """
-  "*** YOUR CODE HERE ***"
+  visited = set()
+  stack = util.Stack()
+  current = {'state': (problem.getStartState(), None, 0), 'history':[]}
+  while not problem.isGoalState(current['state'][0]):
+    for state in problem.getSuccessors(current['state'][0]):
+      if not state in visited:
+        history = current['history'][:]
+        history.append(state[1])
+        stack.push({'state': state, 'history':history})
+        visited.add(state)
+    current = stack.pop()
+  return current['history']
 
-  print "Start:", problem.getStartState()
-  #print "Is the start a goal?", problem.isGoalState(problem.getStartState())
-  #print "Start's successors:", problem.getSuccessors(problem.getStartState())
-  path = []
-  visted = []
-  isGoalReached = False
-  state_stack = util.Stack()
-  state_stack.push((problem.getStartState(),'',''))
-
-  def search(problem, state_stack, visted):
-    current_state = state_stack.pop()
-    if not problem.isGoalState(current_state[0]):
-      children = problem.getSuccessors(current_state[0])
-      for state in children:
-        new_loc = state[0]
-        if new_loc not in visted:
-          state_stack.push(state)
-          visted.append(new_loc)       
-          try:
-               return current_state[1] +' '+ search(problem, state_stack, visted)
-               break
-          except Exception, e:
-               continue
-    else:
-      return current_state[1] 
-      
-  return search(problem, state_stack, visted).split()
 def breadthFirstSearch(problem):
   """
   Search the shallowest nodes in the search tree first.
   [2nd Edition: p 73, 3rd Edition: p 82]
   """
   "*** YOUR CODE HERE ***"
-  depth = 0
-  path = []
-  isGoalReached = False
-  state_queue = util.PriorityQueue()
-  state_queue.push(((problem.getStartState(),'','',),[]), depth)
-  while not isGoalReached:
-    current_state = state_queue.pop()
-    #print current_state
-    if not problem.isGoalState(current_state[0][0]):
-      children = problem.getSuccessors(current_state[0][0])
-      print current_state  
-      depth += 1
-      for state in children:
-        print state
-        new_loc = state[0]
-        state_queue.push((state, current_state[1] + [state[1]] ), depth)
-      #print state_queue.heap
-    else:
-      isGoalReached = True
-      return current_state[1]
-      
+  visited = set()
+  queue = util.Queue()
+  current = {'state': (problem.getStartState(), None, 0), 'history':[]}
+  while not problem.isGoalState(current['state'][0]):
+    for state in problem.getSuccessors(current['state'][0]):
+      if not state in visited:
+        history = current['history'][:]
+        history.append(state[1])
+        queue.push({'state': state, 'history':history})
+        visited.add(state)
+    current = queue.pop()
+  return current['history']
+
 def uniformCostSearch(problem):
   "Search the node of least total cost first. "
   "*** YOUR CODE HERE ***"
-  depth = 0
-  path = []
-  visted = []
-  isGoalReached = False
-  state_queue = util.PriorityQueue()
-  state_queue.push(((problem.getStartState(),'','',),[]), depth)
-  while not isGoalReached:
-    current_state = state_queue.pop()
-    if not problem.isGoalState(current_state[0][0]):
-      children = problem.getSuccessors(current_state[0][0])
-      depth += 1
-      for state in children:
-        new_loc = state[0]
-        if new_loc not in visted:
-          visted.append(state[0])
-          state_queue.push((state, current_state[1] + [state[1]] ), state[2])
-    else:
-      isGoalReached = True
-      return current_state[1]
+  visited = set()
+  p_queue = util.PriorityQueue()
+  current = { 'state': (problem.getStartState(), None, 0), 
+              'history':[], 
+              'cost': 0 }
+  while not problem.isGoalState(current['state'][0]):
+    for state in problem.getSuccessors(current['state'][0]):
+      if not state in visited:
+        history = current['history'][:]
+        history.append(state[1])
+        cost = current['cost'] + state[2]
+        p_queue.push({'state': state, 'history':history, 'cost': cost}, cost)
+        visited.add(state)
+    current = p_queue.pop()
+  return current['history']
 
 def nullHeuristic(state, problem=None):
   """
   A heuristic function estimates the cost from the current state to the nearest
   goal in the provided SearchProblem.  This heuristic is trivial.
   """
-  return 0
+  x1, y1 = problem.goal
+  x2, y2 = state[0]
+  dx = x2 - x1
+  dy = y2 - y1
+  distance = math.hypot(dx, dy)
+
+  return distance
 
 def aStarSearch(problem, heuristic=nullHeuristic):
   "Search the node that has the lowest combined cost and heuristic first."
   "*** YOUR CODE HERE ***"
-  depth = 0
-  path = []
-  visted = []
-  isGoalReached = False
-  state_queue = util.PriorityQueue()
-  state_queue.push(((problem.getStartState(),'','',),[]), depth)
-  while not isGoalReached:
-    current_state = state_queue.pop()
-    if not problem.isGoalState(current_state[0][0]):
-      children = problem.getSuccessors(current_state[0][0])
-      depth += 1
-      for state in children:
-        new_loc = state[0]
-        if new_loc not in visted:
-          visted.append(state[0])
-          state_queue.push((state, current_state[1] + [state[1]] ), heuristic(state[0], problem))
-    else:
-      isGoalReached = True
-      return current_state[1]
+  visited = set()
+  p_queue = util.PriorityQueue()
+  current = { 'state': (problem.getStartState(), None, 0), 
+              'history':[]}
+  while not problem.isGoalState(current['state'][0]):
+    for state in problem.getSuccessors(current['state'][0]):
+      if not state in visited:
+        history = current['history'][:]
+        history.append(state[1])
+        heuristic_value = heuristic(state, problem)
+        p_queue.push({'state': state, 'history':history}, heuristic_value)
+        visited.add(state)
+    current = p_queue.pop()
+  return current['history']
     
   
 # Abbreviations
